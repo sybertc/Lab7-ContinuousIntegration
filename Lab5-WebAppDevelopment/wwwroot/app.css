@@ -1,0 +1,228 @@
+
+:root {
+    --off-white: #f6f5f3;
+    --beige: #d9ccbd;
+    --navy: #1e3a5f;
+    --black: #000000; 
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: var(--off-white);
+    color: #333;
+}
+
+/* Headings */
+h1, h2, h3 {
+    color: var(--navy);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    font-size: 2.2em;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* ----------------------------------------------------------
+   Standardized Button Styles
+----------------------------------------------------------- */
+.btn-index {
+    display: inline-block;
+    margin: 8px;
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--off-white);
+    background-color: var(--navy);
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .btn-index:hover {
+        background-color: var(--beige);
+        color: var(--navy);
+    }
+
+/* ----------------------------------------------------------
+   Layout Containers
+----------------------------------------------------------- */
+
+.fullpage-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+
+.index-container {
+    max-width: 800px;
+    width: 100%;
+    padding: 60px;
+    background-color: var(--off-white);
+    border: 1px solid var(--beige);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.table-container {
+    margin-right: 100px;
+}
+
+/* ----------------------------------------------------------
+   Table Styles
+----------------------------------------------------------- */
+.table {
+    width: 100%;
+    background-color: var(--off-white);
+    border-collapse: collapse;
+}
+
+    .table th, .table td {
+        padding: 0.75rem;
+        border: 2px solid var(--navy);
+        text-align: left;
+    }
+
+    .table thead {
+        background-color: var(--beige);
+        color: var(--navy);
+    }
+/* ----------------------------------------------------------
+   Navigation Menu Styles
+----------------------------------------------------------- */
+.custom-nav, .nav {
+    background-color: var(--navy);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+    .custom-nav .nav-link,
+    .nav .nav-link {
+        color: var(--off-white);
+        font-weight: bold;
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        border: 3px solid var(--beige);
+        border-radius: 0.25rem;
+        text-decoration: none;
+        display: block;
+    }
+
+        .custom-nav .nav-link:hover,
+        .custom-nav .nav-link.active,
+        .nav .nav-link:hover,
+        .nav .nav-link.active {
+            background-color: var(--beige);
+            color: var(--navy);
+        }
+
+.home-nav-link {
+    background-color: var(--beige);
+    color: var(--navy);
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 3px solid var(--beige);
+}
+
+    .home-nav-link:hover,
+    .home-nav-link.active {
+        background-color: var(--navy);
+        color: var(--off-white);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+/* ----------------------------------------------------------
+   Error and Validation Styles
+----------------------------------------------------------- */
+.blazor-error-boundary {
+    background: var(--black) !important;
+    color: var(--off-white);
+    padding: 1rem;
+    text-align: center;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred.";
+    }
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid #e50000;
+}
+
+.validation-message {
+    color: #e50000;
+}
+
+/* ----------------------------------------------------------
+   Miscellaneous
+----------------------------------------------------------- */
+a {
+    color: var(--navy);
+    text-decoration: none;
+}
+
+.combined-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.combo-container {
+    margin-bottom: 20px;
+}
+
+.combo-box {
+    position: relative;
+}
+
+    .combo-box input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--beige);
+        border-radius: 4px;
+        font-size: 1em;
+        box-sizing: border-box;
+    }
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--off-white);
+    border: 1px solid var(--beige);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+    .dropdown-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+        .dropdown-list li:hover {
+            background-color: var(--beige);
+            color: var(--navy);
+        }
+
+.action-buttons {
+    text-align: center;
+}

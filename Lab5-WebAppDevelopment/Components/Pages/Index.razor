@@ -1,0 +1,16 @@
+﻿@rendermode InteractiveServer
+@page "/"
+@inject NavigationManager Navigation
+
+<div class="index-container" style="margin-left: 250px; margin-top: 250px;">
+    <h1>Welcome to the Library Management Page</h1>
+    <p>Select an option to manage your library:</p>
+    <div class="button-group">
+        <a href="/books" class="btn-index">Manage Books</a>
+        <a href="/users" class="btn-index">Manage Users</a>
+    </div>
+    <div class="button-group" style="margin-top: 20px;">
+        <a href="/borrow-book" class="btn-index">Borrow Book</a>
+        <a href="/return-book" class="btn-index">Return Book</a>
+    </div>
+</div>

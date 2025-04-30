@@ -1,0 +1,192 @@
+﻿@page "/borrow-book"
+@using Lab5_WebAppDevelopment.Models
+@using Lab5_WebAppDevelopment.Services
+@inject ILibraryService LibraryService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="borrow-page-container" style="margin: 100px 0 0 -300px;">
+    <h3>Borrow Book</h3>
+    <div class="combined-container">
+        <div class="combo-container">
+            <label>Select User:</label>
+            <div class="combo-box">
+                <input type="text" placeholder="Type user name..."
+                       @bind="userQuery" @bind:event="oninput"
+                       @onfocus="() => showUserDropdown = true"
+                       @onblur="OnUserBlur" />
+                @if (showUserDropdown && FilteredUsers.Any())
+                {
+                    <ul class="dropdown-list">
+                        @foreach (var user in FilteredUsers.OrderBy(u => u.Name))
+                        {
+                            <li @onmousedown="() => SelectUser(user)">@user.Name</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        <div class="combo-container" style="margin-top:20px;">
+            <label>Select Book:</label>
+            <div class="combo-box">
+                <input type="text" placeholder="Type book title..."
+                       @bind="bookQuery" @bind:event="oninput"
+                       @onfocus="() => showBookDropdown = true"
+                       @onblur="OnBookBlur" />
+                @if (showBookDropdown && FilteredBooks.Any())
+                {
+                    <ul class="dropdown-list">
+                        @foreach (var book in FilteredBooks.OrderBy(b => b.Title))
+                        {
+                            <li @onmousedown="() => SelectBook(book)">@book.Title</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="status-message">
+                @statusMessage
+            </div>
+        }
+        <div class="action-buttons" style="margin-top:20px; text-align:center;">
+            <button class="btn-index" @onclick="BorrowSelectedBook">Borrow</button>
+            <button class="btn-index" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .borrow-page-container {
+    }
+
+    .combined-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .combo-container {
+        margin-bottom: 20px;
+    }
+
+    .combo-box {
+        position: relative;
+    }
+
+        .combo-box input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--beige);
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+    .dropdown-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--off-white);
+        border: 1px solid var(--beige);
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 1000;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+        .dropdown-list li {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+            .dropdown-list li:hover {
+                background-color: var(--beige);
+                color: var(--navy);
+            }
+    .status-message {
+        margin-top: 15px;
+        padding: 10px;
+        font-weight: bold;
+        color: var(--navy);
+        text-align: center;
+    }
+    .action-buttons {
+        text-align: center;
+    }
+</style>
+
+@code {
+    private string userQuery = "";
+    private bool showUserDropdown = false;
+    private User selectedUser = null;
+    private IEnumerable<User> FilteredUsers =>
+        LibraryService.Users.Where(u =>
+            string.IsNullOrEmpty(userQuery) ||
+            u.Name.Contains(userQuery, StringComparison.OrdinalIgnoreCase));
+
+    private string bookQuery = "";
+    private bool showBookDropdown = false;
+    private Book selectedBook = null;
+    private IEnumerable<Book> FilteredBooks =>
+        LibraryService.Books.Where(b =>
+            string.IsNullOrEmpty(bookQuery) ||
+            b.Title.Contains(bookQuery, StringComparison.OrdinalIgnoreCase));
+
+    private string statusMessage = "";
+
+    private async Task OnUserBlur()
+    {
+        await Task.Delay(50);
+        showUserDropdown = false;
+        StateHasChanged();
+    }
+    private async Task OnBookBlur()
+    {
+        await Task.Delay(50);
+        showBookDropdown = false;
+        StateHasChanged();
+    }
+
+    private void SelectUser(User user)
+    {
+        selectedUser = user;
+        userQuery = user.Name;
+        showUserDropdown = false;
+    }
+
+    private void SelectBook(Book book)
+    {
+        selectedBook = book;
+        bookQuery = book.Title;
+        showBookDropdown = false;
+    }
+
+    private void BorrowSelectedBook()
+    {
+        if (selectedUser == null || selectedBook == null)
+        {
+            statusMessage = "Borrow unsuccessful: Please select both a user and a book.";
+            return;
+        }
+        bool success = LibraryService.BorrowBook(selectedBook.Id, selectedUser.Id);
+        if (success)
+        {
+            statusMessage = "Borrow successful.";
+            selectedBook = null;
+            bookQuery = "";
+        }
+        else
+        {
+            statusMessage = "Borrow unsuccessful.";
+        }
+        StateHasChanged();
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/borrow-book");
+}

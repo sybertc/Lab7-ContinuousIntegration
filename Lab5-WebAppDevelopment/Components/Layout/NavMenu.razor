@@ -1,0 +1,65 @@
+﻿<nav class="nav flex-column custom-nav">
+    <NavLink class="nav-link home-nav-link" href="/" Match="NavLinkMatch.All">
+        <span class="oi oi-home"></span> Home
+    </NavLink>
+    <NavLink class="nav-link" href="/books">
+        <span class="oi oi-book"></span> Books
+    </NavLink>
+    <NavLink class="nav-link" href="/users">
+        <span class="oi oi-people"></span> Users
+    </NavLink>
+    <NavLink class="nav-link" href="/borrow-book">
+        <span class="oi oi-plus"></span> Borrow Book
+    </NavLink>
+    <NavLink class="nav-link" href="/return-book">
+        <span class="oi oi-minus"></span> Return Book
+    </NavLink>
+</nav>
+
+<style>
+    /* Base NavBar Container */
+    .custom-nav {
+        background-color: var(--navy);
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+        /* Base styling for nav links */
+        .custom-nav .nav-link {
+            color: var(--off-white);
+            font-weight: bold;
+            text-align: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border: 3px solid var(--beige);
+            border-radius: 0.25rem;
+            text-decoration: none;
+            display: block;
+        }
+
+            /* Hover and Active state for general nav links */
+            .custom-nav .nav-link:hover,
+            .custom-nav .nav-link.active {
+                background-color: var(--beige);
+                color: var(--navy);
+            }
+
+    /* Updated Home button styling: Beige background with Navy text */
+    .home-nav-link {
+        background-color: var(--beige);
+        color: var(--navy);
+        font-size: large;
+        font-weight: bold;
+        padding: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        border: 3px solid var(--beige);
+    }
+
+        .home-nav-link:hover,
+        .home-nav-link.active {
+            /* On hover/active, we invert the colors as a visual cue */
+            background-color: var(--navy);
+            color: var(--off-white);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+</style>

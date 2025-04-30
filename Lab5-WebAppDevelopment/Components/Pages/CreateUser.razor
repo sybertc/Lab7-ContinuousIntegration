@@ -1,0 +1,42 @@
+﻿@page "/users/create"
+@using Lab5_WebAppDevelopment.Models
+@using Lab5_WebAppDevelopment.Services
+@inject ILibraryService LibraryService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Create New User</h3>
+
+<EditForm Model="newUser" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Name:</label>
+        <InputText class="form-control" @bind-Value="newUser.Name" />
+    </div>
+    <div class="form-group">
+        <label>Email:</label>
+        <InputText class="form-control" @bind-Value="newUser.Email" />
+    </div>
+
+    <div class="action-buttons">
+        <button type="submit" class="btn-index">Save</button>
+        <button type="button" class="btn-index" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+
+@code {
+    private User newUser = new User();
+
+    private void HandleValidSubmit()
+    {
+        LibraryService.AddUser(newUser);
+        Navigation.NavigateTo("/users");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/users");
+    }
+}

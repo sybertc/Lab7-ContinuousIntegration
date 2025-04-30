@@ -1,0 +1,118 @@
+﻿@rendermode InteractiveServer
+@page "/users"
+@using Lab5_WebAppDevelopment.Models
+@using Lab5_WebAppDevelopment.Services
+@inject ILibraryService LibraryService
+@inject NavigationManager Navigation
+
+<h3>User Management</h3>
+
+<div class="action-buttons">
+    <button class="btn-index" @onclick="CreateUser">Add User</button>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    ID
+                    <button type="button" class="sort-button @(sortColumn == "Id" ? "active" : "")" @onclick='() => SortBy("Id")'>
+                        Sort
+                    </button>
+                </th>
+                <th>
+                    Name
+                    <button type="button" class="sort-button @(sortColumn == "Name" ? "active" : "")" @onclick='() => SortBy("Name")'>
+                        Sort
+                    </button>
+                </th>
+                <th>
+                    Email
+                    <button type="button" class="sort-button @(sortColumn == "Email" ? "active" : "")" @onclick='() => SortBy("Email")'>
+                        Sort
+                    </button>
+                </th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in SortedUsers)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <button class="btn-index" @onclick="() => EditUser(user.Id)">Edit</button>
+                        <button class="btn-index" @onclick="() => DeleteUser(user.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .sort-button {
+        border: none;
+        background: transparent;
+        color: var(--navy);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin-left: 5px;
+    }
+
+        .sort-button.active {
+            color: var(--black);
+            font-weight: bold;
+        }
+</style>
+
+@code {
+    private string sortColumn = "Id";
+    private bool ascending = true;
+
+    private IEnumerable<User> SortedUsers
+    {
+        get
+        {
+            IEnumerable<User> users = LibraryService.Users;
+            switch (sortColumn)
+            {
+                case "Id":
+                    users = ascending ? users.OrderBy(u => u.Id) : users.OrderByDescending(u => u.Id);
+                    break;
+                case "Name":
+                    users = ascending ? users.OrderBy(u => u.Name) : users.OrderByDescending(u => u.Name);
+                    break;
+                case "Email":
+                    users = ascending ? users.OrderBy(u => u.Email) : users.OrderByDescending(u => u.Email);
+                    break;
+            }
+            return users;
+        }
+    }
+
+    private void SortBy(string column)
+    {
+        if (sortColumn == column)
+            ascending = !ascending;
+        else
+        {
+            sortColumn = column;
+            ascending = true;
+        }
+    }
+
+    private void CreateUser() => Navigation.NavigateTo("/users/create");
+
+    private void EditUser(int userId) => Navigation.NavigateTo($"/users/edit/{userId}");
+
+    private void DeleteUser(int userId)
+    {
+        LibraryService.DeleteUser(userId);
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,279 @@
+﻿@page "/return-book"
+@using Lab5_WebAppDevelopment.Models
+@using Lab5_WebAppDevelopment.Services
+@inject ILibraryService LibraryService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="borrow-page-container" style="margin: 100px auto 0 auto; max-width: 1200px;">
+    <h3>Return Book</h3>
+    <div class="combined-container">
+        <div class="combo-container">
+            <label>Select User:</label>
+            <div class="combo-box">
+                <input type="text" placeholder="Type user name..."
+                       @bind="userQuery" @bind:event="oninput"
+                       @onfocus="() => showUserDropdown = true"
+                       @onblur="OnUserBlur" />
+                @if (showUserDropdown && FilteredUsers.Any())
+                {
+                    <ul class="dropdown-list">
+                        @foreach (var user in FilteredUsers.OrderBy(u => u.Name))
+                        {
+                            <li @onmousedown="() => SelectUser(user)">@user.Name</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        <div class="combo-container" style="margin-top:20px;">
+            <label>Select Book to Return:</label>
+            <div class="combo-box">
+                <input type="text" placeholder="Type book title..."
+                       @bind="bookQuery" @bind:event="oninput"
+                       @onfocus="() => showBookDropdown = true"
+                       @onblur="OnBookBlur" />
+                @if (showBookDropdown && FilteredBorrowedBooks.Any())
+                {
+                    <ul class="dropdown-list">
+                        @foreach (var book in FilteredBorrowedBooks.OrderBy(b => b.Title))
+                        {
+                            <li @onmousedown="() => SelectBook(book)">@book.Title</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="status-message">
+                @statusMessage
+            </div>
+        }
+        <div class="action-buttons" style="margin-top:20px; text-align:center;">
+            <button class="btn-index" @onclick="ReturnSelectedBook">Return</button>
+            <button class="btn-index" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+    <div class="table-container" style="margin-top:40px;">
+        <h4 style="text-align:center; color: var(--navy);">Currently Checked-Out Books</h4>
+        <table class="table" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>
+                        ID
+                        <button type="button" class="sort-button @(checkoutSortColumn == "Id" ? "active" : "")" @onclick='() => SortCheckedOut(" Id")'>Sort</button>
+                    </th>
+                    <th>
+                        Title
+                        <button type="button" class="sort-button @(checkoutSortColumn == "Title" ? "active" : "")" @onclick='() => SortCheckedOut("Title")'>Sort</button>
+                    </th>
+                    <th>
+                        Author
+                        <button type="button" class="sort-button @(checkoutSortColumn == "Author" ? "active" : "")" @onclick='() => SortCheckedOut("Author")'>Sort</button>
+                    </th>
+                    <th>
+                        ISBN
+                        <button type="button" class="sort-button @(checkoutSortColumn == "ISBN" ? "active" : "")" @onclick='() => SortCheckedOut("ISBN")'>Sort</button>
+                    </th>
+                    <th>
+                        Borrowed By
+                        <button type="button" class="sort-button @(checkoutSortColumn == "BorrowedBy" ? "active" : "")" @onclick='() => SortCheckedOut("BorrowedBy")'>Sort</button>
+                    </th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in SortedCheckedOutBooks)
+                {
+                    <tr>
+                        <td>@item.Book.Id</td>
+                        <td>@item.Book.Title</td>
+                        <td>@item.Book.Author</td>
+                        <td>@item.Book.ISBN</td>
+                        <td>@item.User.Name</td>
+                        <td>
+                            <button class="btn-index" @onclick="() => ReturnDirectly(item.User, item.Book)">Return</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .status-message {
+        margin-top: 15px;
+        padding: 10px;
+        font-weight: bold;
+        color: var(--navy);
+        text-align: center;
+    }
+
+    .sort-button {
+        border: none;
+        background: transparent;
+        color: var(--navy);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin-left: 5px;
+    }
+
+        .sort-button.active {
+            color: var(--black);
+            font-weight: bold;
+        }
+</style>
+
+@code {
+    private string userQuery = "";
+    private bool showUserDropdown = false;
+    private User selectedUser = null;
+    private IEnumerable<User> FilteredUsers =>
+        LibraryService.Users.Where(u =>
+            string.IsNullOrEmpty(userQuery) ||
+            u.Name.Contains(userQuery, StringComparison.OrdinalIgnoreCase));
+
+    private string bookQuery = "";
+    private bool showBookDropdown = false;
+    private Book selectedBook = null;
+    private IEnumerable<Book> FilteredBorrowedBooks =>
+        UserBorrowedBooks.Where(b =>
+            string.IsNullOrEmpty(bookQuery) ||
+            b.Title.Contains(bookQuery, StringComparison.OrdinalIgnoreCase));
+
+    private IEnumerable<Book> UserBorrowedBooks =>
+        selectedUser != null && LibraryService.BorrowedBooks.ContainsKey(selectedUser)
+            ? LibraryService.BorrowedBooks[selectedUser]
+            : Enumerable.Empty<Book>();
+
+    private IEnumerable<(User User, Book Book)> CheckedOutBooks =>
+        LibraryService.BorrowedBooks.SelectMany(kvp =>
+            kvp.Value.Select(b => (User: kvp.Key, Book: b)));
+
+    private string checkoutSortColumn = "Title";
+    private bool checkoutAscending = true;
+    private IEnumerable<(User User, Book Book)> SortedCheckedOutBooks
+    {
+        get
+        {
+            var sorted = CheckedOutBooks;
+            switch (checkoutSortColumn)
+            {
+                case "Id":
+                    sorted = checkoutAscending ? sorted.OrderBy(item => item.Book.Id)
+                                               : sorted.OrderByDescending(item => item.Book.Id);
+                    break;
+                case "Title":
+                    sorted = checkoutAscending ? sorted.OrderBy(item => item.Book.Title)
+                                               : sorted.OrderByDescending(item => item.Book.Title);
+                    break;
+                case "Author":
+                    sorted = checkoutAscending ? sorted.OrderBy(item => item.Book.Author)
+                                               : sorted.OrderByDescending(item => item.Book.Author);
+                    break;
+                case "ISBN":
+                    sorted = checkoutAscending ? sorted.OrderBy(item => item.Book.ISBN)
+                                               : sorted.OrderByDescending(item => item.Book.ISBN);
+                    break;
+                case "BorrowedBy":
+                    sorted = checkoutAscending ? sorted.OrderBy(item => item.User.Name)
+                                               : sorted.OrderByDescending(item => item.User.Name);
+                    break;
+            }
+            return sorted;
+        }
+    }
+
+    private void SortCheckedOut(string column)
+    {
+        if (checkoutSortColumn == column)
+        {
+            checkoutAscending = !checkoutAscending;
+        }
+        else
+        {
+            checkoutSortColumn = column;
+            checkoutAscending = true;
+        }
+    }
+
+    private string statusMessage = "";
+
+    private async Task OnUserBlur()
+    {
+        await Task.Delay(50);
+        showUserDropdown = false;
+        StateHasChanged();
+    }
+
+    private async Task OnBookBlur()
+    {
+        await Task.Delay(50);
+        showBookDropdown = false;
+        StateHasChanged();
+    }
+
+    private void SelectUser(User user)
+    {
+        selectedUser = user;
+        userQuery = user.Name;
+        showUserDropdown = false;
+        selectedBook = null;
+        bookQuery = "";
+    }
+
+    private void SelectBook(Book book)
+    {
+        selectedBook = book;
+        bookQuery = book.Title;
+        showBookDropdown = false;
+    }
+
+    private void ReturnSelectedBook()
+    {
+        if (selectedUser == null || selectedBook == null)
+        {
+            statusMessage = "Return unsuccessful: Please select both a user and a borrowed book.";
+            return;
+        }
+
+        var userBooks = UserBorrowedBooks.ToList();
+        var index = userBooks.FindIndex(b => b.Id == selectedBook.Id);
+        if (index < 0)
+        {
+            statusMessage = "Return unsuccessful: Selected book not found in user's borrowed list.";
+            return;
+        }
+
+        bool success = LibraryService.ReturnBook(selectedUser.Id, index);
+        statusMessage = success ? "Return successful." : "Return unsuccessful.";
+        if (success)
+        {
+            selectedBook = null;
+            bookQuery = "";
+        }
+        StateHasChanged();
+    }
+
+    private void ReturnDirectly(User user, Book book)
+    {
+        var userBooks = LibraryService.BorrowedBooks.ContainsKey(user)
+                        ? LibraryService.BorrowedBooks[user].ToList()
+                        : new List<Book>();
+        var index = userBooks.FindIndex(b => b.Id == book.Id);
+        if (index < 0)
+        {
+            statusMessage = $"Return unsuccessful: Book {book.Title} not found.";
+            return;
+        }
+
+        bool success = LibraryService.ReturnBook(user.Id, index);
+        statusMessage = success ? $"Return successful for {book.Title}." : $"Return unsuccessful for {book.Title}.";
+        StateHasChanged();
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/return-book");
+}

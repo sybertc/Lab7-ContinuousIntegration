@@ -1,0 +1,152 @@
+﻿@rendermode InteractiveServer
+@page "/books"
+@using Lab5_WebAppDevelopment.Models
+@using Lab5_WebAppDevelopment.Services
+@inject ILibraryService LibraryService
+@inject NavigationManager Navigation
+
+<style>   
+    .sort-button {
+        border: none;
+        background: transparent;
+        color: var(--navy);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin-left: 5px;
+    }
+        .sort-button.active {
+            color: var(--black);
+            font-weight: bold;
+        }
+</style>
+
+<h3>Books Management</h3>
+
+<div class="action-buttons">
+    <button class="btn-index" @onclick="CreateBook">Add Book</button>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    ID
+                    <button type="button" class="sort-button @(sortColumn=="Id" ? "active" : "")" @onclick='() => SortBy("Id")'>Sort</button>
+                </th>
+                <th>
+                    Title
+                    <button type="button" class="sort-button @(sortColumn=="Title" ? "active" : "")" @onclick='() => SortBy("Title")'>Sort</button>
+                </th>
+                <th>
+                    Author
+                    <button type="button" class="sort-button @(sortColumn=="Author" ? "active" : "")" @onclick='() => SortBy("Author")'>Sort</button>
+                </th>
+                <th>
+                    ISBN
+                    <button type="button" class="sort-button @(sortColumn=="ISBN" ? "active" : "")" @onclick='() => SortBy("ISBN")'>Sort</button>
+                </th>
+                <th>
+                    Checked Out
+                    <button type="button" class="sort-button @(sortColumn=="CheckedOut" ? "active" : "")" @onclick='() => SortBy("CheckedOut")'>Sort</button>
+                </th>
+                <th>
+                    Borrowed By
+                    <button type="button" class="sort-button @(sortColumn=="BorrowedBy" ? "active" : "")" @onclick='() => SortBy("BorrowedBy")'>Sort</button>
+                </th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in SortedBooksWithStatus)
+            {
+                <tr>
+                    <td>@item.Book.Id</td>
+                    <td>@item.Book.Title</td>
+                    <td>@item.Book.Author</td>
+                    <td>@item.Book.ISBN</td>
+                    <td>@(string.IsNullOrEmpty(item.Borrower) ? "N" : "Y")</td>
+                    <td>@item.Borrower</td>
+                    <td>
+                        <button type="button" class="btn-index" @onclick="() => EditBook(item.Book.Id)">Edit</button>
+                        <button type="button" class="btn-index" @onclick="() => DeleteBook(item.Book.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private string sortColumn = "Id";
+    private bool ascending = true;
+
+    /// <summary>
+    /// Combines available books (from LibraryService.Books with no borrower) and
+    /// borrowed books (from LibraryService.BorrowedBooks with the borrower's name),
+    /// then sorts based on the current sort column and order.
+    /// </summary>
+    private IEnumerable<(Book Book, string Borrower)> SortedBooksWithStatus
+    {
+        get
+        {
+            var combined = LibraryService.Books.Select(b => (Book: b, Borrower: ""))
+                .Concat(LibraryService.BorrowedBooks.SelectMany(kvp => kvp.Value.Select(b => (Book: b, Borrower: kvp.Key.Name))));
+            switch (sortColumn)
+            {
+                case "Id":
+                    combined = ascending ? combined.OrderBy(x => x.Book.Id) : combined.OrderByDescending(x => x.Book.Id);
+                    break;
+                case "Title":
+                    combined = ascending ? combined.OrderBy(x => x.Book.Title) : combined.OrderByDescending(x => x.Book.Title);
+                    break;
+                case "Author":
+                    combined = ascending ? combined.OrderBy(x => x.Book.Author) : combined.OrderByDescending(x => x.Book.Author);
+                    break;
+                case "ISBN":
+                    combined = ascending ? combined.OrderBy(x => x.Book.ISBN) : combined.OrderByDescending(x => x.Book.ISBN);
+                    break;
+                case "CheckedOut":
+                    // If borrowed, assign 0; if available, assign 1 so that ascending order puts checked-out books first.
+                    combined = ascending
+                        ? combined.OrderBy(x => string.IsNullOrEmpty(x.Borrower) ? 1 : 0)
+                        : combined.OrderByDescending(x => string.IsNullOrEmpty(x.Borrower) ? 1 : 0);
+                    break;
+                case "BorrowedBy":
+                    combined = ascending ? combined.OrderBy(x => x.Borrower) : combined.OrderByDescending(x => x.Borrower);
+                    break;
+            }
+            return combined;
+        }
+    }
+
+    private void SortBy(string column)
+    {
+        if (sortColumn == column)
+        {
+            ascending = !ascending;
+        }
+        else
+        {
+            sortColumn = column;
+            ascending = true;
+        }
+    }
+
+    private void EditBook(int bookId)
+    {
+        Navigation.NavigateTo("/books/edit/" + bookId);
+    }
+
+    private void DeleteBook(int bookId)
+    {
+        LibraryService.DeleteBook(bookId);
+        StateHasChanged();
+    }
+
+    private void CreateBook()
+    {
+        Navigation.NavigateTo("/books/create");
+    }
+}
